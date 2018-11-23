@@ -4,10 +4,12 @@ defmodule FullNode do
     use GenServer
     ##################### representations #####################
     # FullNode's state: { num_blocks, blocks, current_block,transaction_buffer }
-    # block's state: {transaction_list,block_header,input_hashes_set, transaction_hashes_set}
+    # block's state: {index, block_header, transaction_list,,input_hashes_set, transaction_hashes_set}
     # possibly? - all_merkel_hashes 
     # block_header's state: {prev_hash, nocne, merkel_root}
     #################################################
+
+
 
     ############### client side ####################
     def start_up(default) do
@@ -19,8 +21,11 @@ defmodule FullNode do
       {:ok, args}
     end
 
+    #keep searching till 'target' number of zeros are found at beginning
     def mine() do
-    
+      prev_block_hash = get_prev_block_hash
+      nonce = 0
+
     end
 
     def compute_merkel_root() do
@@ -59,5 +64,14 @@ defmodule FullNode do
     # meanwhile if a block got accepted, and that had a transaction that we were
     # wornig on, then redo
 
+      def add_peer(pid, item) do
+        GenServer.cast(pid, {:push, item})
+      end
+    
+      def add_peers(pid, pidList) do
+        for x <- 0..Enum.count(pidList)-1 do
+          add_peer(pid, Enum.at(pidList,x))
+        end
+    end
 
 end
