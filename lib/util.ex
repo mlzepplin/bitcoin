@@ -1,13 +1,6 @@
-defmodule Util do
+defmodule Topology do
     
-    def get_hex_sha256_hash(input) do
-        :crypto.hash(:sha256, input) | Base.encode16
-    end
-
-
-
-
-
+   
     #Helpers for building topology
 
     def create_network_nodes(num_nodes, main_pid) do
@@ -38,4 +31,25 @@ defmodule Util do
 
     
 
+end
+
+
+defmodule Crypto do
+    def get_hex_sha256_hash(input) do
+        :crypto.hash(:sha256, input) |> Base.encode16
+    end
+end
+
+
+defmodule Merkle do
+    def calculate_merkle_root(list) do
+        list
+        |> Enum.chunk_every(2)
+        |> Enum.map(&Crypto.get_hex_sha256_hash(&1))
+        |> calculate_merkle_root(true)
+    end
+
+    def calculate_merkle_root(list, true) when length(list) == 1, do: hd(list)
+    def calculate_merkle_root(list, true), do: calculate_merkle_root(list)
+  
 end
