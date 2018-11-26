@@ -13,7 +13,7 @@ defmodule BitcoinTest do
     hash = "B4056DF6691F8DC72E56302DDAD345D65FEAD3EAD9299609A826E2344EB63AA4"
     computed_hash = Crypto.get_hex_sha256_hash("Bitcoin")
     assert computed_hash == hash 
-end
+  end
 
   test "calculates merkle root" do
     txns = ["a","b", "c","d"]
@@ -69,6 +69,36 @@ end
 
      #first 4 bits
      assert  String.slice(hash_result, 0..3) == "0000"
+  end
+
+  test "transaction test: generating the first coinbase transaction" do
+   
+    # treat public key as the address itself, since we are neglecting the checksum functionality
+    {pub1,priv1} = Signature.create_keypair()
+    
+    generated_transaction = Enum.at(Transaction.generate_coinbase(1,pub1).outputs,0)
+    
+    # coinbase transaction comes back to the miner
+    assert generated_transaction.addr == pub1
+
+    # we've set the amount of the coinbase transaction to be 1 BTC
+    assert generated_transaction.amount == 1
+    
+    #coinbase transaction should be the first transaction ,i.e. with tx_output_id ending in  ':0'
+    assert String.slice(generated_transaction.txoid, -2..-1) == ":0"
+
+  end
+
+  test "computing outputs and summing " do
+   
+    {pub1,priv1} = Signature.create_keypair()
+    # creating a designations map
+
+
+    #retrieving the output of the map
+
+
+
   end
 
 end
