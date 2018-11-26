@@ -1,3 +1,4 @@
+ExUnit.start()
 defmodule BitcoinTest do
   use ExUnit.Case
 
@@ -38,5 +39,5 @@ defmodule BitcoinTest do
     assert merkle_root == computed_merkle_root
 
   end
-  
+
 end

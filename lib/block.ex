@@ -1,12 +1,12 @@
 defmodule Block do
     @difficulty 16
 
-    defstruct index: <<0, 0, 0, 0>>,
-              hash: nil,
-              previous_hash: nil,
-              nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>,
-              timestamp: nil,
-              merkle_root: nil,
+    defstruct index: 0,
+              hash: "0",
+              previous_hash: "0",
+              nonce: 0,
+              timestamp: "0",
+              merkle_root: "0",
               transactions: []
 
     def header(block) do
@@ -30,19 +30,11 @@ defmodule Block do
 
     #create new block based on previous block
     def initialize(%{index: index, hash: previous_hash}) do
-        index =
-          index
-          |> :binary.decode_unsigned()
-          |> Kernel.+(1)
-          |> :binary.encode_unsigned()
-          |> Utilities.zero_pad(4)
-    
         block = %Block{
           index: index,
           previous_hash: previous_hash,
           timestamp: get_unix_time()
         }
-    
         Map.put(block, :difficulty, @difficulty)
     end
 
@@ -67,24 +59,8 @@ defmodule Block do
 
     def mine(block) do
         block = Map.put(block, :hash, calculate_block_hash(block))
-
-        if hash_less_than_target?(block) do
-            block
-        else
-            #reset nonce to zero and update timestamp if nonce overflows
-            if block.nonce == <<255, 255, 255, 255, 255, 255, 255, 255>> do
-                mine(%{block | nonce: <<0, 0, 0, 0, 0, 0, 0, 0>>, timestamp: get_unix_time()})
-              else
-                nonce =
-                  block.nonce
-                  |> :binary.decode_unsigned()
-                  |> Kernel.+(1)
-                  |> :binary.encode_unsigned()
-                  |> Util.zero_pad(8) # Add trailing zero bytes since they're removed when encoding / decoding
-        
-                mine(%{block | nonce: nonce})
-            end
-        end
+        resultant_nonce = Mine.proof_of_work(block.hash,0,@difficulty)
+        block = %{block | nonce: resultant_nonce}
     end
 
     def hash_less_than_target?(%{hash: hash, difficulty: @difficulty}) do
