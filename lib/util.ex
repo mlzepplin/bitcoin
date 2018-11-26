@@ -1,3 +1,10 @@
+defmodule Util do
+    def zero_pad(bytes, size) do
+        String.duplicate(<<0>>, size - byte_size(bytes)) <> bytes
+    end
+end
+
+
 defmodule Topology do
     
    
@@ -29,8 +36,6 @@ defmodule Topology do
         end
     end
 
-    
-
 end
 
 
@@ -39,6 +44,7 @@ defmodule Crypto do
         :crypto.hash(:sha256, input) |> Base.encode16
     end
 end
+
 
 
 defmodule Merkle do

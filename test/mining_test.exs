@@ -1,5 +1,5 @@
 ExUnit.start()
-defmodule MingingTest do
+defmodule MiningTest do
     use ExUnit.Case
     doctest Mine
     test "nonce computation / proof of work" do

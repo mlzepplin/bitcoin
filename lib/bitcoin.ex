@@ -31,4 +31,5 @@ defmodule Bitcoin do
       FullNode.add_peers(node, Enum.filter(nodes, fn(x) -> x != node end))
     end
   end
+  
 end
