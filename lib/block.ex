@@ -1,12 +1,13 @@
+ExUnit.start()
 defmodule Block do
     @difficulty 16
 
     defstruct index: 0,
-              hash: "0",
-              previous_hash: "0",
+              hash: nil,
+              previous_hash: nil,
               nonce: 0,
-              timestamp: "0",
-              merkle_root: "0",
+              timestamp: nil,
+              merkle_root: "",
               transactions: []
 
     def header(block) do
@@ -30,6 +31,9 @@ defmodule Block do
 
     #create new block based on previous block
     def initialize(%{index: index, hash: previous_hash}) do
+        index = index |> Kernel.+(1)
+
+    
         block = %Block{
           index: index,
           previous_hash: previous_hash,
@@ -49,34 +53,25 @@ defmodule Block do
         } = block
     
         Crypto.get_hex_sha256_hash([
-          index,
+          Integer.to_string(index),
           previous_hash,
-          timestamp,
-          nonce,
+          Integer.to_string(timestamp),
+          Integer.to_string(nonce),
           merkle_root
         ])
     end
 
     def mine(block) do
-        block = Map.put(block, :hash, calculate_block_hash(block))
-        resultant_nonce = Mine.proof_of_work(block.hash,0,@difficulty)
-        block = %{block | nonce: resultant_nonce}
-    end
+        header =  block.previous_hash <> block.merkle_root
 
-    def hash_less_than_target?(%{hash: hash, difficulty: @difficulty}) do
-        {integer_value_of_hash, _} = Integer.parse(hash, 16)
-        integer_value_of_hash < calculate_target(@difficulty)
+        {_, resultant_nonce} = Mine.proof_of_work(header, 0, @difficulty)
+        block = Map.put(block, :nonce, resultant_nonce)
+        block = Map.put(block, :hash, calculate_block_hash(block))
+        
     end
 
     defp get_unix_time do
         DateTime.utc_now() |> DateTime.to_unix()
     end
-
-    def calculate_target(@difficulty), do: round((:math.pow(16, 64) / @difficulty)) - 1
-
-
-    
-    
-
 
 end

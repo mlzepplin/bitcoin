@@ -15,12 +15,13 @@ defmodule Mine do
       :sha256
       |> :crypto.hash(to_string(header) <> to_string(nonce))
       |> Base.encode16(case: :lower)
+      
 
     case String.to_integer(hash_result, 16) do
       result when result < target ->
-        {hash_result, nonce}
+                  {hash_result, nonce}
       _more_than_target ->
-        proof_of_work( header, nonce + @nonce_increment, difficulty_bits)
+                  proof_of_work( header, nonce + @nonce_increment, difficulty_bits)
     end
   end
 

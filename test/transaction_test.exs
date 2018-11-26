@@ -2,6 +2,7 @@ ExUnit.start()
 defmodule TransactionTest do
   use ExUnit.Case
   doctest Transaction
+  
   test "transaction test: generating the first coinbase transaction" do
    
     # treat public key as the address itself, since we are neglecting the checksum functionality

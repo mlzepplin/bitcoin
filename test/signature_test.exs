@@ -1,7 +1,8 @@
 ExUnit.start()
 defmodule SignatureTest do
   use ExUnit.Case
-  doctest Signature   
+  doctest Signature 
+    
   test "signing data and verifying signature" do
     #create a key-pair
     {public_key,private_key} = Signature.create_keypair()
