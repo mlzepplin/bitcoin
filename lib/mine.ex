@@ -1,7 +1,7 @@
 defmodule Mine do
     @starting_nonce 0
     @nonce_increment 1
-    @nonce_limit 400000000
+    @nonce_limit 100000000
     require Integer
     defguardp valid_nonce?(nonce) when nonce <= @nonce_limit
 
