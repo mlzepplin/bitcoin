@@ -5,8 +5,6 @@ defmodule Mine do
     require Integer
     defguardp valid_nonce?(nonce) when nonce <= @nonce_limit
 
-    #defp proof_of_work(nonce \\ @starting_nonce, header, difficulty_bits)
-
   def proof_of_work(header,nonce, difficulty_bits)
        when valid_nonce?(nonce) do
     target = pow(2, 256 - difficulty_bits)

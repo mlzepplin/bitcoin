@@ -1,4 +1,4 @@
-ExUnit.start()
+ExUnit.start(trace: true)
 defmodule BlockTest do
     use ExUnit.Case
 

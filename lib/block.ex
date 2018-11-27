@@ -1,4 +1,3 @@
-ExUnit.start()
 defmodule Block do
     @difficulty 16
 
@@ -62,12 +61,25 @@ defmodule Block do
     end
 
     def mine(block) do
+       
+        transaction_hash_list = Enum.map(block.transactions,fn(t) -> Transaction.calculate_hash(t) end)
+        block = Map.put(block,:merkle_root,Merkle.calculate_merkle_root(transaction_hash_list))
+        
         header =  block.previous_hash <> block.merkle_root
-
         {_, resultant_nonce} = Mine.proof_of_work(header, 0, @difficulty)
         block = Map.put(block, :nonce, resultant_nonce)
         block = Map.put(block, :hash, calculate_block_hash(block))
         
+    end
+
+    def add_transaction(block,transaction) do
+        transaction_list = block.transactions
+        transaction_list = [transaction_list | transaction]
+        block = Map.put(block, :transactions,transaction_list)
+    end
+
+    def set_transaction_list(block,transaction_list) do
+        block = Map.put(block, :trasactions, transaction_list)
     end
 
     defp get_unix_time do

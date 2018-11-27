@@ -1,4 +1,4 @@
-ExUnit.start()
+ExUnit.start(trace: true)
 defmodule TransactionTest do
   use ExUnit.Case
   doctest Transaction
@@ -57,5 +57,7 @@ defmodule TransactionTest do
     assert Transaction.compute_outputs(tx,designations) == ground_truth
 
   end
+
+
 
 end

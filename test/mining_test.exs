@@ -1,4 +1,4 @@
-ExUnit.start()
+ExUnit.start(trace: true)
 defmodule MiningTest do
     use ExUnit.Case
     doctest Mine

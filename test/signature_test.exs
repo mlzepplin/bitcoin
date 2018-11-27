@@ -1,4 +1,4 @@
-ExUnit.start()
+ExUnit.start(trace: true)
 defmodule SignatureTest do
   use ExUnit.Case
   doctest Signature 

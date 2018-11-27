@@ -1,20 +1,4 @@
 defmodule Bitcoin do
-  @moduledoc """
-  Documentation for Bitcoin.
-  """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Bitcoin.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
 
   def create_network_nodes(num_nodes, main_pid) do
     {_, nodes} = Enum.map(Enum.to_list(1..num_nodes), fn(x) -> create_network_node(main_pid) end) |> Enum.unzip

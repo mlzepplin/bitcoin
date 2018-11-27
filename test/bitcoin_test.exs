@@ -1,12 +1,7 @@
-ExUnit.start()
+ExUnit.start(trace: true)
 defmodule BitcoinTest do
   use ExUnit.Case
 
-  doctest Bitcoin
-
-  test "greets the world" do
-    assert Bitcoin.hello() == :world
-  end
 
   test "gives correct sha-256 hash" do
     hash = "B4056DF6691F8DC72E56302DDAD345D65FEAD3EAD9299609A826E2344EB63AA4"
