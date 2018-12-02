@@ -37,13 +37,34 @@ defmodule Transaction do
     }
   end
 
+  def generate_transaction(sender,input_list,send_to,send_amount) do
+    timestamp = DateTime.utc_now() |> DateTime.to_string()
+    txid = Crypto.get_hex_sha256_hash(timestamp)
+    tx = %Transaction{
+      inputs: input_list
+    }
+    # creating a designations map
+    input_sum = sum_inputs(input_list)
+    designations = 
+      if input_sum == send_amount do
+        [%{addr: send_to, amount: send_amount}]
+      else
+        [
+          %{addr: send_to, amount: send_amount},
+          %{addr: sender, amount: input_sum - send_amount} # return the sender , the change, if any
+        ]
+      end
+    # note transaction id is calculated only on the basis of inputs
+    # and later is used to assign tx_output_id (txoid) as {txid:#}
+    tx = %{tx | id: Transaction.calculate_hash(tx)}
+    output_list = compute_outputs(tx,designations)
+    tx = %{tx | outputs: output_list}
+  end
+
   def sum_inputs(inputs) do
     Enum.reduce(inputs, 0, fn %{amount: amount}, acc -> (amount + acc) end)
   end
 
-  def calculate_fee(transaction) do
-    Decimal.sub(sum_inputs(transaction.inputs), sum_inputs(transaction.outputs))
-  end
 
 end
 

@@ -58,6 +58,29 @@ defmodule TransactionTest do
 
   end
 
-
+  test "slice input pool according to amount to send" do
+    inp = [ %{amount: 1},
+            %{amount: 2},
+            %{amount: 3},
+            %{amount: 4},
+            %{amount: 5},
+            %{amount: 6},
+            %{amount: 7},
+            %{amount: 8}
+          ]
+    amount = 7
+    l = [ %{amount: 1},
+          %{amount: 2},
+          %{amount: 3},
+          %{amount: 4}
+        ]
+    r = [ %{amount: 5},
+          %{amount: 6},
+          %{amount: 7},
+          %{amount: 8}
+        ]
+    ground_truth = {10,l,r}
+    assert ground_truth == FullNode.slice_input_pool(amount,inp)
+  end
 
 end

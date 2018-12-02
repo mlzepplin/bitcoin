@@ -74,7 +74,7 @@ defmodule Block do
 
     def add_transaction(block,transaction) do
         transaction_list = block.transactions
-        transaction_list = [transaction_list | transaction]
+        transaction_list = [transaction|transaction_list]
         block = Map.put(block, :transactions,transaction_list)
     end
 
