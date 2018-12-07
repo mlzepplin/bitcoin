@@ -4,6 +4,8 @@ defmodule FullNode do
     @transaction_limit  4
     @coinbase_reward 10
     use GenServer
+
+
     ##################### representations #####################
     # FullNode's state: { public_key, private_key, balance, num_blocks, block_chain, transaction_buffer, input_pool }
     # block's state: {index, block_header, transaction_list,input_hashes_set, transaction_hashes_set}
@@ -12,8 +14,8 @@ defmodule FullNode do
     ##########################################################
     ######################### client side ####################
     def start_up(default) do
-      {:ok,main_pid} = GenServer.start_link(__MODULE__, default)
-      main_pid
+      {:ok,node_pid} = GenServer.start_link(__MODULE__, default)
+      node_pid
     end
 
     def init(args) do
@@ -68,7 +70,7 @@ defmodule FullNode do
     end
 
 #     ################### server side ###################
-    def handle_cast({:mine}, { public_key,private_key,balance, block_chain, transaction_buffer, input_pool }) do
+    def handle_cast({:mine}, { public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
         #NOTE : THIS EXPECTS TRANSACTION_BUFFER TO ATLEAST HAVE transaction_limit number of records
         # treating public key as the address itself
         current_block = 
@@ -178,5 +180,14 @@ defmodule FullNode do
 #           add_peer(pid, Enum.at(pidList,x))
 #         end
 #     end
+
+    def handle_info({:take, product, quantity}, state) do
+        IO.puts("Received transaction")
+
+        updated_state = state
+        |> Map.update(product, quantity, &(&1 + quantity))
+
+        {:noreply, updated_state}
+    end
 
 end
