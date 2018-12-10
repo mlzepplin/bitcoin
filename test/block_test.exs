@@ -27,6 +27,46 @@ defmodule BlockTest do
 
     end
 
+    test "add transaction to block" do
+        first_block = Block.initialize()
+        tx = %Transaction{
+            inputs: [
+              %{txoid: "input:0", amount: 100.00},
+              %{txoid: "input:4", amount: 40.33},
+            ],
+            outputs: [
+              %{addr: "pid", txoid: "aaaa", amount: 100.00},
+              %{addr: "pid", txoid: "aaaab", amount: 10.00}
+            ]
+        }
+        block = first_block |> Block.initialize() |> Block.add_transaction(tx)
+        assert [tx] == block.transactions 
+
+    end
+
+    test "get all coins from a block meant for a node" do
+        first_block = Block.initialize()
+        tx = %Transaction{
+            inputs: [
+              %{txoid: "input:0", amount: 100.00},
+              %{txoid: "input:4", amount: 40.33},
+            ],
+            outputs: [
+              %{addr: "pid", txoid: "aaaa", amount: 100.00},
+              %{addr: "pid", txoid: "aaaab", amount: 10.00}
+            ]
+        }
+        
+        block = first_block |> Block.initialize() |> Block.add_transaction(tx)
+        ground_truth = [
+            %{addr: "pid", txoid: "aaaa", amount: 100.00},
+            %{addr: "pid", txoid: "aaaab", amount: 10.00}
+        ]
+        assert ground_truth == Block.get_my_coins_from_block(block,"pid")
+        
+        
+    end
+
 end
 
 
