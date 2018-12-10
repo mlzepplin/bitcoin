@@ -11,8 +11,8 @@ defmodule FullNode do
     # block's state: {index, block_header, transaction_list,input_hashes_set, transaction_hashes_set}
     # possibly? - all_merkel_hashes 
     # block_header's state: {prev_hash, nocne, merkel_root}
-    ##########################################################
-    ######################### client side ####################
+    ###########################################################
+    ######################### client side #####################
     def start_up(default) do
       {:ok,node_pid} = GenServer.start_link(__MODULE__, default)
       node_pid
@@ -30,7 +30,7 @@ defmodule FullNode do
      
     end
 
-    def broadcast_block() do
+    def broadcast_block(block) do
         
     end
 
@@ -43,6 +43,10 @@ defmodule FullNode do
     end
     
     def broadcast_transaction(transaction) do
+        
+    end
+
+    def verify_transaction_in_blockchain(transaction) do
         
     end
 
@@ -96,6 +100,7 @@ defmodule FullNode do
         current_block = Block.mine(current_block)
 
         # TODO - BROADCAST THIS BLOCK TO ALL OTHER NODES
+        broadcast_block(current_block)
         
         {:noreply, { public_key,private_key,balance + @coinbase_reward,[current_block | block_chain], transaction_buffer,[coinbase_input| input_pool]}}
 
@@ -113,73 +118,18 @@ defmodule FullNode do
             broadcast_transaction(tx)
             {:noreply,{public_key, private_key, balance - sum, block_chain, [tx | transaction_buffer], updated_input_pool }}
         else
-            # no transaction can be made
+            # no transaction can be made as insufficient balance 
             {:noreply,{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }}
         end
     end
 
-#   def handle_cast({:send_money,send_to,amount}, { balance, num_blocks, block_chain, current_block,transaction_buffer }) do
-#     #IO.puts "received cast"
-#     if (amount <= balance) do
-#         Genserver.cast(send_to,{:recieve_money,amount})
-#         # TODO broadcast_transaction(self(),send_to,amount)
-#         IO.puts "money sent!!"
-#         {:noreply, { balance-amount, num_blocks, block_chain, current_block,transaction_buffer }}
-#     else
-#         {:noreply, { balance, num_blocks, block_chain, current_block,transaction_buffer }}
-#     end
-#   end
-
-#   def handle_cast({:recieve_money,amount},{ balance, num_blocks, block_chain, current_block,transaction_buffer }) do
-#     # TODO : validate transaction for double-spending
-#     {:noreply, { balance+amount, num_blocks, block_chain, current_block,transaction_buffer }}
-#   end
- 
-#   #representation of a transaction {input,output,amount}
-#   def handle_cast({:recieve_transaction_broadcast,transaction}, { balance, num_blocks, block_chain, current_block,trasaction_buffer_count,transaction_buffer }) do
-#     # append the transaction to the transaction_buffer
-#     # if length of buffer increases more than transaction limit -- start to mine
-#     if transaction_buffer_count+1 == @transaction_limit do
-#       Genserver.cast(self(),:mine)
-#     end
-#     {:noreply, { balance, num_blocks, block_chain, current_block,trasaction_buffer_count+1,[transaction_buffer|transaction]}}
-#   end
-
-#   def handle_cast(:mine,{ balance, num_blocks, block_chain, {prev_hash,nonce,merkel_root},trasaction_buffer_count,transaction_buffer }) do
-#     # pop the first transaction_limit  number of transacton from the transaction_buffer (which is a list)
-#     #compute merkel_root
-#     txns_in_block = Enum.slice(transaction_buffer, 0, @transaction_limit)
-#     txn_hashes = Enum.map(txns_in_block, fn(t) -> Util.get_hex_sha256_hash(t))
+    def handle_cast({:block_reciever,recieved_block},{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
+        # stop mining when you recieved a block
+        # we are assuming , no attackers in the system, and only honest nodes
+        trasaction_list = recieved_block.transactions
+    end 
 
 
-
-#     #now concat prev_block's_header's_hash and a nonce
-
-#     # iterate with varying values of hash
-    
-#     # try to mine for nonce, as soon as done, update own block_cahin and broadcast block to all
-  
-
-#   end
-
-#     # TODO ?
-#     # will be informed of incoming latest transactions
-#     # will be informed of accepted new blocks as well
-
-#     # as soon as the transactions hit a limit
-#     # start mining, and ignore all further incoming transactions
-#     # meanwhile if a block got accepted, and that had a transaction that we were
-#     # wornig on, then redo
-
-#       def add_peer(pid, item) do
-#         GenServer.cast(pid, {:push, item})
-#       end
-    
-#       def add_peers(pid, pidList) do
-#         for x <- 0..Enum.count(pidList)-1 do
-#           add_peer(pid, Enum.at(pidList,x))
-#         end
-#     end
 
     def handle_info({:take, product, quantity}, state) do
         IO.puts("Received transaction")

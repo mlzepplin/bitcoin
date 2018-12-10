@@ -74,8 +74,8 @@ defmodule Block do
 
     def add_transaction(block,transaction) do
         transaction_list = block.transactions
-        transaction_list = [transaction|transaction_list]
-        block = Map.put(block, :transactions,transaction_list)
+        new_transaction_list = [transaction|transaction_list]
+        block = Map.put(block, :transactions,new_transaction_list)
     end
 
     def set_transaction_list(block,transaction_list) do
@@ -85,5 +85,31 @@ defmodule Block do
     defp get_unix_time do
         DateTime.utc_now() |> DateTime.to_unix()
     end
+    
+    def recurse_tl(node,[]) do [] end 
+    def recurse_tl(node,[head|tail]) do
+        head_coins = recurse_cl(node,head.outputs)
+        tail_coins = recurse_tl(node,tail)
+        List.flatten [head_coins,tail_coins]
+    end
 
+    def recurse_cl(node,[]) do [] end
+    def recurse_cl(node,[head|tail]) do
+        head_coin = 
+        if head.addr == node do
+            head
+        else
+            []
+        end
+        tail_coins = recurse_cl(node,tail)
+        List.flatten [head_coin,tail_coins]
+    end
+
+    
+    def get_my_coins_from_block(block,node) do
+        # this will just be returning the list of all the coins 
+        # that are to be added to the said node's input_pool
+        result = recurse_tl(node,block.transactions) 
+    end
+    
 end
