@@ -26,22 +26,38 @@ defmodule PubSub do
     end
   end
 
-  def publish(topic, {:transaction, recieved_tx}) do
+  #broadcast transactions to all nodes. 
+  def publish(topic, {:transaction, recieved_tx, sender_pid}) do
     case :pg2.get_members(topic) do
       {:error, err} ->
         {:error, err}
       pids ->
-        for pid <- pids, do: GenServer.cast(pid, {:tx_reciever,recieved_tx})
+        for pid <- pids do
+          if (pid != sender_pid) do
+            block_size_reached = GenServer.call(pid, {:tx_receiver,recieved_tx})
+            if (block_size_reached) do
+              FullNode.mine(pid)
+            else
+              #No mining
+            end
+          end
+        end
         :ok
     end
   end
 
-  def publish(topic, {:block, mined_block}) do
+  def publish(topic, {:block, mined_block, sender_pid}) do
     case :pg2.get_members(topic) do
       {:error, err} ->
         {:error, err}
       pids ->
-        for pid <- pids, do: GenServer.cast(pid, {:block, mined_block})
+        for pid <- pids do
+          if (pid != sender_pid) do
+            GenServer.cast(pid, {:block_receiver, mined_block})
+          else
+            #No broadcast to self
+          end
+        end
         :ok
     end
   end

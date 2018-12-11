@@ -16,14 +16,11 @@ init_coins = [
     %{txoid: "input:3", amount: 60.00}
 ]
 
-IO.inspect is_list(init_coins)
 
-  IO.inspect init_coins
   node1 = Enum.at(nodes,0)
   IO.inspect node1
   node2 = Enum.at(nodes,1)
-  pid = self
-  IO.inspect pid
+
 
 #   FullNode.call(pid,{:add_coins,coin_list})
   #FullNode.add_coins(node1, init_coins)
@@ -34,6 +31,7 @@ IO.inspect is_list(init_coins)
   FullNode.print_state(node2)
 
   FullNode.make_transaction(node1,node2,50)
+  :timer.sleep(5000)
 
   FullNode.print_state(node1)
   FullNode.print_state(node2)

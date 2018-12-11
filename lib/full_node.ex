@@ -32,12 +32,12 @@ defmodule FullNode do
     end
    
 
-    def broadcast_transaction(transaction) do
-        PubSub.publish("bitcoin_transactions", {:transaction, transaction})
+    def broadcast_transaction(transaction, sender_pid) do
+        PubSub.publish("bitcoin_transactions", {:transaction, transaction, sender_pid})
     end
 
-    def broadcast_block(block) do
-        PubSub.publish("mined_blocks", {:block, block})
+    def broadcast_block(block, sender_pid) do
+        PubSub.publish("mined_blocks", {:block, block, sender_pid})
     end
 
     def receive_transaction(transaction) do
@@ -123,7 +123,7 @@ defmodule FullNode do
         updated_block = Block.mine(current_block)
 
         # TODO - BROADCAST THIS BLOCK TO ALL OTHER NODES
-        broadcast_block(updated_block)
+        broadcast_block(updated_block, self)
         
         {:noreply, { public_key,private_key,balance + @coinbase_reward,[updated_block | block_chain], transaction_buffer,[coinbase_input| input_pool]}}
 
@@ -139,7 +139,7 @@ defmodule FullNode do
             tx = Transaction.generate_transaction(self(), input_list, send_to, amount)
              
             # TODO -- > Broadcast transaction
-            broadcast_transaction(tx)
+            broadcast_transaction(tx, self)
             {:noreply,{public_key, private_key, balance - sum, block_chain, [tx | transaction_buffer], updated_input_pool }}
         else
             # no transaction can be made as insufficient balance 
@@ -166,8 +166,14 @@ defmodule FullNode do
     end 
 
     # receive transaction
-    def handle_cast({:tx_receiver,received_tx},{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
-        {:noreply,{public_key, private_key, balance, block_chain,[received_tx| transaction_buffer], input_pool }}
+    def handle_call({:tx_receiver,received_tx}, _from, {public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
+        block_size_reached = if ((length(transaction_buffer) + 1) == @transaction_limit) do
+                                    :true
+                                else
+                                    :false
+                                end
+                            
+        {:reply, block_size_reached, {public_key, private_key, balance, block_chain,[received_tx| transaction_buffer], input_pool }}
     end
 
     def handle_call({:add_coins, coin_list}, _from, {public_key, private_key, balance, block_chain, transaction_buffer, input_pool}) do

@@ -6,6 +6,7 @@ defmodule SignatureTest do
   test "signing data and verifying signature" do
     #create a key-pair
     {public_key,private_key} = Signature.create_keypair()
+    IO.inspect public_key
     
     #sign off some data with it
     data = "hey there! sign me!"
