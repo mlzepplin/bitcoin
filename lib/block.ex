@@ -87,8 +87,8 @@ defmodule Block do
     end
     
     def recurse_tl(node,[]) do [] end 
-    def recurse_tl(node,[head|tail]) do
-        head_coins = recurse_cl(node,head.outputs)
+    def recurse_tl(node,[tx|tail]) do
+        head_coins = recurse_cl(node, tx.outputs)
         tail_coins = recurse_tl(node,tail)
         List.flatten [head_coins,tail_coins]
     end
@@ -111,5 +111,5 @@ defmodule Block do
         # that are to be added to the said node's input_pool
         result = recurse_tl(node,block.transactions) 
     end
-    
+
 end

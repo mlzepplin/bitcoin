@@ -57,8 +57,7 @@ defmodule FullNode do
     end
 
     def add_coins(pid,coin_list) do
-        IO.inspect "add coins"
-        IO.inspect coin_list
+ 
         GenServer.call(pid,{:add_coins,coin_list})
     end
     
@@ -89,7 +88,13 @@ defmodule FullNode do
         GenServer.call(pid, :print_state)
     end
 
-
+    def recur(block,[]) do
+        block
+    end
+    def recur(block,[head|tail]) do
+        block =  Block.add_transaction(block,head)
+        recur(block,tail)
+    end
 
 #     ################### server side ###################
 
@@ -105,22 +110,21 @@ defmodule FullNode do
             Block.initialize(hd(block_chain))
         end
         # adding the initial coinbase transaction
-        coinbase_transaction = Transaction.generate_coinbase(@coinbase_reward,public_key)
+        coinbase_transaction = Transaction.generate_coinbase(@coinbase_reward,self())
         coinbase_input = %{txoid: coinbase_transaction.id, amount: @coinbase_reward}
         current_block = Block.add_transaction(current_block,coinbase_transaction)
 
         # pop out transactions from the buffer and fill em up in the current_block
 
-        for_block = Enum.slice(transaction_buffer,0..@transaction_limit-1)
+        tx_for_block = Enum.slice(transaction_buffer,0..@transaction_limit-1)
         new_transaction_buffer = Enum.slice(transaction_buffer,@transaction_limit..length(transaction_buffer)-1)
         
-        for tx <- for_block do
-            current_block = Block.add_transaction(current_block,tx)
-        end
+
+        new_current_block = recur(current_block,tx_for_block)
         
 
         # mine for bitcoin and increment your balance
-        updated_block = Block.mine(current_block)
+        updated_block = Block.mine(new_current_block)
 
         # TODO - BROADCAST THIS BLOCK TO ALL OTHER NODES
         broadcast_block(updated_block, self)

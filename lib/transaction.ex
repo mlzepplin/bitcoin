@@ -27,7 +27,7 @@ defmodule Transaction do
   
   def generate_coinbase(amount, miner_address) do
     timestamp = DateTime.utc_now() |> DateTime.to_string()
-    txid = Crypto.get_hex_sha256_hash(miner_address <> timestamp)
+    txid = Crypto.get_hex_sha256_hash(timestamp)
     # returns this transaction
     %Transaction{
       id: txid,
@@ -57,7 +57,8 @@ defmodule Transaction do
     # note transaction id is calculated only on the basis of inputs
     # and later is used to assign tx_output_id (txoid) as {txid:#}
     tx = %{tx | id: Transaction.calculate_hash(tx)}
-    output_list = compute_outputs(tx,designations)
+    output_list = compute_outputs(tx,designations).outputs
+    #IO.inspect output_list
     tx = %{tx | outputs: output_list}
   end
 
