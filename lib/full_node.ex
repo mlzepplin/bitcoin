@@ -26,8 +26,9 @@ defmodule FullNode do
         Genserver.cast(self(),{:mine})
     end
    
-    def make_transaction() do
-     
+
+    def broadcast_transaction(transaction) do
+        
     end
 
     def broadcast_block(block) do
@@ -38,18 +39,10 @@ defmodule FullNode do
         # verifies if inputs are not being double spent
         # makes the transaction 
         # broadcasts the transaction
-        GenServer.cast(self(),{:send_money,send_to,amount})
+        GenServer.cast(self(),{:transact, {send_to,amount}})
         
     end
     
-    def broadcast_transaction(transaction) do
-        
-    end
-
-    def verify_transaction_in_blockchain(transaction) do
-        
-    end
-
     # methods to slice input_pool according to required_amount
     def find_slice_index(running_sum,req_amount,input_pool,pos) do
         s = running_sum + Enum.at(input_pool,pos).amount
@@ -74,6 +67,8 @@ defmodule FullNode do
     end
 
 #     ################### server side ###################
+
+    # mine
     def handle_cast({:mine}, { public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
         #NOTE : THIS EXPECTS TRANSACTION_BUFFER TO ATLEAST HAVE transaction_limit number of records
         # treating public key as the address itself
@@ -106,6 +101,7 @@ defmodule FullNode do
 
     end
 
+    # make transaction
     def handle_cast({:transact,{send_to,amount}},{ public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
         # check if you have enough balance 
         if(balance>=amount) do
@@ -123,21 +119,27 @@ defmodule FullNode do
         end
     end
 
+    # recieve block
     def handle_cast({:block_reciever,recieved_block},{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
-        # stop mining when you recieved a block
+        ################
+        # TODO stop mining when you recieved a block
+        ###############
         # we are assuming , no attackers in the system, and only honest nodes
-        trasaction_list = recieved_block.transactions
+        new_block_chain  =  [block|block_chain]
+        coins_for_me = Block.get_my_coins_from_block(recieved_block, public_key)
+        if length(coins_for_me) != 0 do
+            new_input_pool = List.flatten [coins_for_me | input_pool]
+            sum = Transaction.sum_inputs(coins_for_me)
+            {:noreply,{public_key, private_key, balance + sum, new_block_chain, transaction_buffer, new_input_pool }}
+        else
+            {:noreply,{public_key, private_key, balance, new_block_chain, transaction_buffer, input_pool }}
+        end
+
     end 
 
-
-
-    def handle_info({:take, product, quantity}, state) do
-        IO.puts("Received transaction")
-
-        updated_state = state
-        |> Map.update(product, quantity, &(&1 + quantity))
-
-        {:noreply, updated_state}
+    # recieve transaction
+    def handle_cast({:tx_reciever,recieved_tx},{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
+        {:noreply,{public_key, private_key, balance, new_block_chain,[tx| transaction_buffer], input_pool }}
     end
 
 end
