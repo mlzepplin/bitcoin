@@ -28,11 +28,19 @@ defmodule FullNode do
    
 
     def broadcast_transaction(transaction) do
-        
+        PubSub.publish("bitcoin_transactions", {:transaction, transaction})
     end
 
     def broadcast_block(block) do
-        
+        PubSub.publish("mined_blocks", {:block, block})
+    end
+
+    def receive_transaction(transaction) do
+        GenServer.cast(self(), {:tx_receiver,transaction} )
+    end
+
+    def receive_block(block) do
+        GenServer.cast(self(), {:block_receiver,block})
     end
 
     def make_trasaction(send_to,amount) do
@@ -92,12 +100,12 @@ defmodule FullNode do
         end
 
         # mine for bitcoin and increment your balance
-        current_block = Block.mine(current_block)
+        updated_block = Block.mine(current_block)
 
         # TODO - BROADCAST THIS BLOCK TO ALL OTHER NODES
-        broadcast_block(current_block)
+        broadcast_block(updated_block)
         
-        {:noreply, { public_key,private_key,balance + @coinbase_reward,[current_block | block_chain], transaction_buffer,[coinbase_input| input_pool]}}
+        {:noreply, { public_key,private_key,balance + @coinbase_reward,[updated_block | block_chain], transaction_buffer,[coinbase_input| input_pool]}}
 
     end
 
@@ -119,14 +127,14 @@ defmodule FullNode do
         end
     end
 
-    # recieve block
-    def handle_cast({:block_reciever,recieved_block},{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
+    # receive block
+    def handle_cast({:block_receiver,received_block},{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
         ################
-        # TODO stop mining when you recieved a block
+        # TODO stop mining when you received a block
         ###############
         # we are assuming , no attackers in the system, and only honest nodes
-        new_block_chain  =  [block|block_chain]
-        coins_for_me = Block.get_my_coins_from_block(recieved_block, public_key)
+        new_block_chain  =  [received_block | block_chain]
+        coins_for_me = Block.get_my_coins_from_block(received_block, public_key)
         if length(coins_for_me) != 0 do
             new_input_pool = List.flatten [coins_for_me | input_pool]
             sum = Transaction.sum_inputs(coins_for_me)
@@ -137,9 +145,20 @@ defmodule FullNode do
 
     end 
 
-    # recieve transaction
-    def handle_cast({:tx_reciever,recieved_tx},{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
-        {:noreply,{public_key, private_key, balance, new_block_chain,[tx| transaction_buffer], input_pool }}
+    # receive transaction
+    def handle_cast({:tx_receiver,received_tx},{public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
+        {:noreply,{public_key, private_key, balance, block_chain,[received_tx| transaction_buffer], input_pool }}
     end
+
+    def listen do
+        receive do
+            {:transaction, transaction} -> receive_transaction(transaction)
+            {:block, block} -> receive_block(block)
+        end
+    
+        listen
+    end
+
+
 
 end

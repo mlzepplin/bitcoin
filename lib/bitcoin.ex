@@ -11,6 +11,7 @@ defmodule Bitcoin do
     {pub_key, priv_key} = Signature.create_keypair()
     pid = FullNode.start_up({pub_key, priv_key, 0.0, 0, [], [], %{}}) #neighbor list
     PubSub.subscribe("bitcoin_transactions", pid)
+    PubSub.subscribe("mined_blocks", pid)
     pid
 
   end

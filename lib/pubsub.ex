@@ -1,7 +1,12 @@
 defmodule PubSub do
+  use GenServer
   @moduledoc """
   Provides methods for subscribing and publishing to topics.
   """
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, :ok, opts)
+  end
 
   def subscribe(topic, pid) do
     :pg2.create(topic)
@@ -16,15 +21,27 @@ defmodule PubSub do
       else
         {:ok, :already_registered}
       end
+
+      
     end
   end
 
-  def publish(topic, msg) do
+  def publish(topic, {:transaction, recieved_tx}) do
     case :pg2.get_members(topic) do
       {:error, err} ->
         {:error, err}
       pids ->
-        for pid <- pids, do: send(pid, msg)
+        for pid <- pids, do: GenServer.cast(pid, {:tx_reciever,recieved_tx})
+        :ok
+    end
+  end
+
+  def publish(topic, {:block, mined_block}) do
+    case :pg2.get_members(topic) do
+      {:error, err} ->
+        {:error, err}
+      pids ->
+        for pid <- pids, do: GenServer.cast(pid, {:block, mined_block})
         :ok
     end
   end
