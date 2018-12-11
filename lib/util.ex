@@ -8,11 +8,11 @@ defmodule Util do
          
       end
     
-    #State { public_key, private_key, balance, num_blocks, block_chain, transaction_buffer, input_pool }
+    #State { public_key, private_key, balance, blockchain, transaction_buffer, input_pool }
     def create_network_node() do
         
         {pub_key, priv_key} = Signature.create_keypair()
-        {:ok, pid} = FullNode.start_link([pub_key, priv_key, 0.0, 0, [], [], %{}]) #neighbor list
+        {:ok, pid} = FullNode.start_link({pub_key, priv_key, 0.0, [], [], []}) #neighbor list
         PubSub.subscribe("bitcoin_transactions", pid)
         PubSub.subscribe("mined_blocks", pid)
         pid

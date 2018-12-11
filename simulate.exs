@@ -26,7 +26,8 @@ IO.inspect is_list(init_coins)
   IO.inspect pid
 
 #   FullNode.call(pid,{:add_coins,coin_list})
-  FullNode.add_coins(node1,init_coins)
+  #FullNode.add_coins(node1, init_coins)
+  GenServer.call(node1, {:add_coins,init_coins})
 
   IO.inspect "before trans"
   FullNode.print_state(node1)

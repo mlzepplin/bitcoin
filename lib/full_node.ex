@@ -19,7 +19,8 @@ defmodule FullNode do
     # end
 
     def start_link(opts) do
-        GenServer.start_link(__MODULE__, :ok, opts)
+         GenServer.start_link(__MODULE__, opts)
+        
     end
 
     def init(args) do
@@ -169,10 +170,10 @@ defmodule FullNode do
         {:noreply,{public_key, private_key, balance, block_chain,[received_tx| transaction_buffer], input_pool }}
     end
 
-    def handle_call({:add_coins, coin_list},_from, {public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
+    def handle_call({:add_coins, coin_list}, _from, {public_key, private_key, balance, block_chain, transaction_buffer, input_pool}) do
         new_input_pool = List.flatten [coin_list | input_pool]
 
-        {:reply, :added, {public_key, private_key, balance + Transaction.sum_inputs(coin_list), block_chain,transaction_buffer, new_input_pool }}
+        {:reply, :added, {public_key, private_key, balance + Transaction.sum_inputs(coin_list), block_chain,transaction_buffer, new_input_pool}}
     end
 
     def handle_call(:print_state, _from, state) do
