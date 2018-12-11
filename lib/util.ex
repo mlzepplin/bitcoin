@@ -2,6 +2,22 @@ defmodule Util do
     def zero_pad(bytes, size) do
         String.duplicate(<<0>>, size - byte_size(bytes)) <> bytes
     end
+
+    def create_network_nodes(num_nodes) do
+        nodes = Enum.map(Enum.to_list(1..num_nodes), fn(x) -> create_network_node() end) 
+         
+      end
+    
+    #State { public_key, private_key, balance, num_blocks, block_chain, transaction_buffer, input_pool }
+    def create_network_node() do
+        
+        {pub_key, priv_key} = Signature.create_keypair()
+        {:ok, pid} = FullNode.start_link([pub_key, priv_key, 0.0, 0, [], [], %{}]) #neighbor list
+        PubSub.subscribe("bitcoin_transactions", pid)
+        PubSub.subscribe("mined_blocks", pid)
+        pid
+    
+    end
 end
 
 
@@ -10,31 +26,17 @@ defmodule Topology do
    
     #Helpers for building topology
 
-    def create_network_nodes(num_nodes, main_pid) do
-        {_, nodes} = Enum.map(Enum.to_list(1..num_nodes), fn(x) -> create_network_node(main_pid) end) |> Enum.unzip
-        nodes 
-    end
     
-    def create_network_node(main_pid) do
-        FullNode.start_link([]) #neighbor list
-        #decide initial state variables
-    end
-    
-    def set_peers(nodes) do
-        for node <- nodes do
-          FullNode.add_peers(node, Enum.filter(nodes, fn(x) -> x != node end))
-        end
-    end
 
-    def add_peer(pid, node) do
-        FullNode.cast(pid, {:add, node})
-    end
+    # def add_peer(pid, node) do
+    #     FullNode.cast(pid, {:add, node})
+    # end
       
-    def add_peers(pid, pidList) do
-        for x <- 0..Enum.count(pidList)-1 do
-          add_peer(pid, Enum.at(pidList,x))
-        end
-    end
+    # def add_peers(pid, pidList) do
+    #     for x <- 0..Enum.count(pidList)-1 do
+    #       add_peer(pid, Enum.at(pidList,x))
+    #     end
+    # end
 
 end
 

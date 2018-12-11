@@ -14,7 +14,7 @@ defmodule PubSub do
       {:error, error} ->
        {:error, error}
       pids ->
-        IO.inspect pids
+        #IO.inspect pids
         unless pid in pids do
           :pg2.join(topic, pid)
           {:ok, :registered}

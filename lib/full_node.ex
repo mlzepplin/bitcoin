@@ -1,7 +1,7 @@
 defmodule FullNode do
 
     @target  4
-    @transaction_limit  4
+    @transaction_limit  1
     @coinbase_reward 10
     use GenServer
 
@@ -13,17 +13,21 @@ defmodule FullNode do
     # block_header's state: {prev_hash, nocne, merkel_root}
     ###########################################################
     ######################### client side #####################
-    def start_up(default) do
-      {:ok,node_pid} = GenServer.start_link(__MODULE__, default)
-      node_pid
+    # def start_up(default) do
+    #   {:ok,node_pid} = GenServer.start_link(__MODULE__, default)
+    #   node_pid
+    # end
+
+    def start_link(opts) do
+        GenServer.start_link(__MODULE__, :ok, opts)
     end
 
     def init(args) do
       {:ok, args}
     end
 
-    def mine() do
-        Genserver.cast(self(),{:mine})
+    def mine(pid) do
+        GenServer.cast(pid,{:mine})
     end
    
 
@@ -43,12 +47,18 @@ defmodule FullNode do
         GenServer.cast(self(), {:block_receiver,block})
     end
 
-    def make_trasaction(send_to,amount) do
+    def make_transaction(pid,send_to,amount) do
         # verifies if inputs are not being double spent
         # makes the transaction 
         # broadcasts the transaction
-        GenServer.cast(self(),{:transact, {send_to,amount}})
+        GenServer.cast(pid,{:transact, {send_to,amount}})
         
+    end
+
+    def add_coins(pid,coin_list) do
+        IO.inspect "add coins"
+        IO.inspect coin_list
+        GenServer.call(pid,{:add_coins,coin_list})
     end
     
     # methods to slice input_pool according to required_amount
@@ -74,6 +84,12 @@ defmodule FullNode do
         {sum,left_slice,right_slice}
     end
 
+    def print_state(pid) do
+        GenServer.call(pid, :print_state)
+    end
+
+
+
 #     ################### server side ###################
 
     # mine
@@ -93,11 +109,14 @@ defmodule FullNode do
         current_block = Block.add_transaction(current_block,coinbase_transaction)
 
         # pop out transactions from the buffer and fill em up in the current_block
-        for x <- 0..@transaction_limit-1 do
-            temp_transaction = hd(transaction_buffer)
-            transaction_buffer = tl(transaction_buffer)
-            current_block = Block.add_transaction(current_block,temp_transaction)
+
+        for_block = Enum.slice(transaction_buffer,0..@transaction_limit-1)
+        new_transaction_buffer = Enum.slice(transaction_buffer,@transaction_limit..length(transaction_buffer)-1)
+        
+        for tx <- for_block do
+            current_block = Block.add_transaction(current_block,tx)
         end
+        
 
         # mine for bitcoin and increment your balance
         updated_block = Block.mine(current_block)
@@ -116,7 +135,7 @@ defmodule FullNode do
             # pick the first few inputs that sum to >= amount_to_send
             {sum, input_list, updated_input_pool} = slice_input_pool(amount, input_pool)
             # def generate_transaction(sender,input_list,send_to,send_amount)
-            tx = Transaction.generate_transaction(public_key, input_list, send_to, amount)
+            tx = Transaction.generate_transaction(self(), input_list, send_to, amount)
              
             # TODO -- > Broadcast transaction
             broadcast_transaction(tx)
@@ -134,7 +153,7 @@ defmodule FullNode do
         ###############
         # we are assuming , no attackers in the system, and only honest nodes
         new_block_chain  =  [received_block | block_chain]
-        coins_for_me = Block.get_my_coins_from_block(received_block, public_key)
+        coins_for_me = Block.get_my_coins_from_block(received_block, self())
         if length(coins_for_me) != 0 do
             new_input_pool = List.flatten [coins_for_me | input_pool]
             sum = Transaction.sum_inputs(coins_for_me)
@@ -150,13 +169,15 @@ defmodule FullNode do
         {:noreply,{public_key, private_key, balance, block_chain,[received_tx| transaction_buffer], input_pool }}
     end
 
-    def listen do
-        receive do
-            {:transaction, transaction} -> receive_transaction(transaction)
-            {:block, block} -> receive_block(block)
-        end
-    
-        listen
+    def handle_call({:add_coins, coin_list},_from, {public_key, private_key, balance, block_chain, transaction_buffer, input_pool }) do
+        new_input_pool = List.flatten [coin_list | input_pool]
+
+        {:reply, :added, {public_key, private_key, balance + Transaction.sum_inputs(coin_list), block_chain,transaction_buffer, new_input_pool }}
+    end
+
+    def handle_call(:print_state, _from, state) do
+        IO.inspect state
+        {:reply, :printed, state}
     end
 
 
