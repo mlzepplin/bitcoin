@@ -31,10 +31,11 @@ defmodule PubSub do
       {:error, err} ->
         {:error, err}
       pids ->
+        miner = Enum.random(pids)
         for pid <- pids do
           if (pid != sender_pid) do
             block_size_reached = GenServer.call(pid, {:tx_receiver,recieved_tx})
-            if (block_size_reached) do
+            if (block_size_reached && pid==miner) do
               FullNode.mine(pid)
             else
               #No mining
@@ -51,11 +52,8 @@ defmodule PubSub do
         {:error, err}
       pids ->
         for pid <- pids do
-         # if (pid != sender_pid) do
             GenServer.cast(pid, {:block_receiver, mined_block})
-         # else
-            #No broadcast to self
-          #end
+         
         end
         :ok
     end

@@ -18,8 +18,9 @@ init_coins = [
 
 
   node1 = Enum.at(nodes,0)
-  IO.inspect node1
   node2 = Enum.at(nodes,1)
+  node3 = Enum.at(nodes,2)
+
 
 
 #   FullNode.call(pid,{:add_coins,coin_list})
@@ -29,13 +30,15 @@ init_coins = [
   IO.inspect "before trans"
   FullNode.print_state(node1)
   FullNode.print_state(node2)
+  FullNode.print_state(node3)
 
   FullNode.make_transaction(node1,node2,50)
-  :timer.sleep(5000)
-
+  :timer.sleep(1000)
+  FullNode.make_transaction(node2,node3,40)
+  :timer.sleep(1000)
   FullNode.print_state(node1)
   FullNode.print_state(node2)
-
+  FullNode.print_state(node3)
   
 
 
