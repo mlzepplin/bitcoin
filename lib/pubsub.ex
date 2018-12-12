@@ -51,11 +51,11 @@ defmodule PubSub do
         {:error, err}
       pids ->
         for pid <- pids do
-          if (pid != sender_pid) do
+         # if (pid != sender_pid) do
             GenServer.cast(pid, {:block_receiver, mined_block})
-          else
+         # else
             #No broadcast to self
-          end
+          #end
         end
         :ok
     end

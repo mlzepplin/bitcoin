@@ -129,7 +129,7 @@ defmodule FullNode do
         # TODO - BROADCAST THIS BLOCK TO ALL OTHER NODES
         broadcast_block(updated_block, self)
         
-        {:noreply, { public_key,private_key,balance + @coinbase_reward,[updated_block | block_chain], transaction_buffer,[coinbase_input| input_pool]}}
+        {:noreply, { public_key,private_key,balance,block_chain, transaction_buffer,input_pool}}
 
     end
 
@@ -159,12 +159,13 @@ defmodule FullNode do
         # we are assuming , no attackers in the system, and only honest nodes
         new_block_chain  =  [received_block | block_chain]
         coins_for_me = Block.get_my_coins_from_block(received_block, self())
+        new_transaction_buffer = Block.update_transaction_buffer(received_block,transaction_buffer)
         if length(coins_for_me) != 0 do
             new_input_pool = List.flatten [coins_for_me | input_pool]
             sum = Transaction.sum_inputs(coins_for_me)
-            {:noreply,{public_key, private_key, balance + sum, new_block_chain, transaction_buffer, new_input_pool }}
+            {:noreply,{public_key, private_key, balance + sum, new_block_chain, new_transaction_buffer, new_input_pool }}
         else
-            {:noreply,{public_key, private_key, balance, new_block_chain, transaction_buffer, input_pool }}
+            {:noreply,{public_key, private_key, balance, new_block_chain, new_transaction_buffer, input_pool }}
         end
 
     end 

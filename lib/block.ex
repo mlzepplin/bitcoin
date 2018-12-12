@@ -112,4 +112,27 @@ defmodule Block do
         result = recurse_tl(node,block.transactions) 
     end
 
+    def recurse_buffer(tx,[]) do [] end
+    def recurse_buffer(tx,[head|buffer_tail]) do
+        head_tx = 
+        if head.id != tx.id do
+            head
+        else
+            []
+        end
+        tail_tx = recurse_buffer(tx,buffer_tail)
+        List.flatten [head_tx,tail_tx]
+    end
+
+    def recurse_block_tx([],buffer) do [] end 
+    def recurse_block_tx([tx|tail],buffer) do
+        head_tx = recurse_buffer(tx,buffer)
+        tail_tx = recurse_block_tx(tail,head_tx)
+        List.flatten tail_tx
+    end
+        
+    def update_transaction_buffer(block,tx_buffer) do
+        result = recurse_block_tx(block.transactions, tx_buffer)
+    end
+
 end
