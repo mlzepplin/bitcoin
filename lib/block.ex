@@ -67,6 +67,9 @@ defmodule Block do
         
         header =  block.previous_hash <> block.merkle_root
         {_, resultant_nonce} = Mine.proof_of_work(header, 0, @difficulty)
+
+        #update manager state      
+        GenServer.cast(Manager, {:nonce, resultant_nonce})
         block = Map.put(block, :nonce, resultant_nonce)
         block = Map.put(block, :hash, calculate_block_hash(block))
         

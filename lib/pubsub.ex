@@ -47,6 +47,7 @@ defmodule PubSub do
   end
 
   def publish(topic, {:block, mined_block, sender_pid}) do
+    GenServer.cast(Manager, {:block, mined_block})
     case :pg2.get_members(topic) do
       {:error, err} ->
         {:error, err}

@@ -1,9 +1,18 @@
 defmodule Bitcoin.Manager do
     use GenServer
 
+    ########################
+    #State: {nonces_list, blockchain }
+
     def init(args) do
         {:ok, args}
     end
+
+    def start_link(default) do
+        {_, pid} = GenServer.start_link(__MODULE__, default, name: Manager)
+
+    end
+
 
     def simulate(nodes, transactions) do
 
@@ -41,6 +50,24 @@ defmodule Bitcoin.Manager do
             FullNode.print_state(node2)
 
         end
+    end
+
+    #Handles
+
+    def handle_cast({:nonce, nonce_value}, {nonces_so_far, blockchain}) do
+        nonces = [nonce_value | nonces_so_far]
+
+        {:noreply, {nonces, blockchain}}
+    end
+
+    def handle_cast({:block, block}, {nonces, blockchain}) do
+        updated_blockchain = [block | blockchain]
+
+        {:noreply, {nonces, updated_blockchain}}
+    end
+
+    def handle_call(:get_state, _from, state) do
+        {:reply, state, state}
     end
 
 
