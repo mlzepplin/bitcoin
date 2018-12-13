@@ -21,32 +21,11 @@ defmodule Util do
 end
 
 
-defmodule Topology do
-    
-   
-    #Helpers for building topology
-
-    
-
-    # def add_peer(pid, node) do
-    #     FullNode.cast(pid, {:add, node})
-    # end
-      
-    # def add_peers(pid, pidList) do
-    #     for x <- 0..Enum.count(pidList)-1 do
-    #       add_peer(pid, Enum.at(pidList,x))
-    #     end
-    # end
-
-end
-
-
 defmodule Crypto do
     def get_hex_sha256_hash(input) do
         :crypto.hash(:sha256, input) |> Base.encode16
     end
 end
-
 
 
 defmodule Merkle do
